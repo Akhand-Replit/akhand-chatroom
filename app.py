@@ -22,9 +22,9 @@ else:
     st.error("⚠️ Firebase credentials are missing! Set them up in Streamlit Cloud Secrets.")
 
 # Page settings
-st.set_page_config(page_title="💬 Chatroom", layout="wide")
+st.set_page_config(page_title="💬 Modern Chatroom", layout="wide")
 
-# Custom Modern Styling
+# Custom Styling
 st.markdown("""
     <style>
         body {
@@ -34,7 +34,7 @@ st.markdown("""
             width: 100%;
             max-width: 700px;
             margin: auto;
-            height: 85vh;
+            height: 80vh;
             background-color: #202C33;
             padding: 15px;
             border-radius: 10px;
@@ -132,13 +132,48 @@ if "username" not in st.session_state:
 if "seen_messages" not in st.session_state:
     st.session_state.seen_messages = set()
 
-if st.session_state.chatroom_id:
+# Ensure user joins or creates a chatroom before rendering UI
+if st.session_state.chatroom_id is None or st.session_state.username is None:
+    st.warning("⚠️ You must create or join a chatroom first!")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("Create a Chatroom")
+        room_name = st.text_input("Enter Chatroom Name", key="create_room_name")
+        username = st.text_input("Choose a Username", key="host_username")
+        if st.button("🚀 Create Chatroom"):
+            if room_name and username:
+                chatroom_id = str(time.time()).replace(".", "")[-8:]
+                db.collection("chatrooms").document(chatroom_id).set({
+                    "room_name": room_name,
+                    "messages": [],
+                    "created_at": firestore.SERVER_TIMESTAMP
+                })
+                st.session_state.chatroom_id = chatroom_id
+                st.session_state.username = username
+                st.success(f"✅ Chatroom Created! Your Chatroom ID: {chatroom_id}")
+
+    with col2:
+        st.subheader("Join a Chatroom")
+        chatroom_code = st.text_input("Enter Chatroom Code", key="join_code")
+        username = st.text_input("Enter Your Username", key="guest_username")
+        if st.button("🔓 Join Chatroom"):
+            if chatroom_code and username:
+                chatroom_ref = db.collection("chatrooms").document(chatroom_code).get()
+                if chatroom_ref.exists:
+                    st.session_state.chatroom_id = chatroom_code
+                    st.session_state.username = username
+                    st.success("🎉 Successfully Joined the Chatroom!")
+                else:
+                    st.error("❌ Chatroom Not Found")
+
+else:
     chatroom_id = st.session_state.chatroom_id
     username = st.session_state.username
 
     st.subheader(f"Chatroom: {chatroom_id}")
 
-    # Retrieve messages
     chatroom_ref = db.collection("chatrooms").document(chatroom_id).get()
     if chatroom_ref.exists:
         messages = chatroom_ref.to_dict().get("messages", [])
@@ -151,12 +186,12 @@ if st.session_state.chatroom_id:
         # Sort messages
         new_messages.sort(key=lambda x: x["timestamp"])
 
-        # Display chat messages in frame
+        # Display chat messages
         st.markdown('<div class="chat-container">', unsafe_allow_html=True)
         for msg in new_messages:
             formatted_time = datetime.fromtimestamp(msg["timestamp"]).strftime("%I:%M %p")
             msg_class = "sent" if msg['user'] == username else "received"
-            avatar_letter = msg["user"][0].upper()  # First letter as avatar
+            avatar_letter = msg["user"][0].upper()
 
             if msg_class == "received":
                 st.markdown(f"""
@@ -180,22 +215,5 @@ if st.session_state.chatroom_id:
                 """, unsafe_allow_html=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
-
-    # Fixed input field at the bottom
-    st.markdown('<div class="input-container">', unsafe_allow_html=True)
-    chat_input = st.text_input("", key="chat_input", label_visibility="collapsed", placeholder="What is up?", help="Type your message here")
-    
-    if st.button(">", key="send_button", help="Send Message"):
-        if chat_input:
-            msg = {
-                "user": username,
-                "message": chat_input,
-                "timestamp": time.time()
-            }
-            db.collection("chatrooms").document(chatroom_id).update({
-                "messages": firestore.ArrayUnion([msg])
-            })
-    
-    st.markdown('</div>', unsafe_allow_html=True)
 
     st.rerun()  # Refresh messages automatically
