@@ -1,23 +1,3 @@
-### **🔴 Issue: Chat Input Not Working & Blank UI**
-Your app currently does not allow users to **type messages** or **see any UI elements properly**. This is likely due to:
-1. **CSS issues** causing the input field to be **unusable**.
-2. **Missing session state updates**, meaning the chatroom isn’t loading correctly.
-3. **Message display issues**, where messages might not be rendering in the correct structure.
-
----
-
-## **✅ Fix: Ensure the Chat UI Works Properly**
-I’ll fix these issues by:
-- **Making sure the input box is always visible and functional.**
-- **Ensuring messages are displayed correctly.**
-- **Applying proper CSS styles to match your second image.**
-
----
-
-## **📝 Updated `app.py` with the Fix**
-Replace your **existing chat UI code** with this:
-
-```python
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
@@ -244,16 +224,3 @@ else:
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.rerun()  # Refresh messages automatically
-```
-
----
-
-### **✅ Fix Summary**
-- **Ensures the chat input field is always functional.**
-- **Fixes missing messages issue.**
-- **Matches your second image UI properly.**
-- **Ensures messages align properly.**
-
----
-
-**Now redeploy the app, and your issue should be fixed! 🚀 Let me know if you need further refinements! 😊**
