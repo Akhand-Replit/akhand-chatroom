@@ -24,7 +24,7 @@ else:
 # Page settings
 st.set_page_config(page_title="💬 Modern Chatroom", layout="wide")
 
-# Custom Styling to Match the Second Image
+# Custom Styling to Match Modern Chat UI
 st.markdown("""
     <style>
         body {
@@ -207,20 +207,17 @@ else:
         st.markdown('</div>', unsafe_allow_html=True)
 
     # Fixed input field at the bottom
-    st.markdown('<div class="input-container">', unsafe_allow_html=True)
-    chat_input = st.text_input("", key="chat_input", label_visibility="collapsed", placeholder="What is up?")
-    
-    if st.button(">", key="send_button"):
-        if chat_input:
+    chat_input = st.text_input("", key="chat_input", label_visibility="collapsed", placeholder="Type a message...")
+
+    if st.button("➤", key="send_button_ui"):
+        if chat_input.strip():
             msg = {
                 "user": username,
-                "message": chat_input,
+                "message": chat_input.strip(),
                 "timestamp": time.time()
             }
             db.collection("chatrooms").document(chatroom_id).update({
                 "messages": firestore.ArrayUnion([msg])
             })
 
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    st.rerun()  # Refresh messages automatically
+            st.experimental_rerun()  # Refresh messages
