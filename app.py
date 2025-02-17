@@ -220,4 +220,4 @@ else:
                 "messages": firestore.ArrayUnion([msg])
             })
 
-            st.experimental_rerun()  # Refresh messages
+            st.rerun()  # Refresh messages
