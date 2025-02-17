@@ -1,3 +1,23 @@
+### **🔴 Issue: Chat Input Not Working & Blank UI**
+Your app currently does not allow users to **type messages** or **see any UI elements properly**. This is likely due to:
+1. **CSS issues** causing the input field to be **unusable**.
+2. **Missing session state updates**, meaning the chatroom isn’t loading correctly.
+3. **Message display issues**, where messages might not be rendering in the correct structure.
+
+---
+
+## **✅ Fix: Ensure the Chat UI Works Properly**
+I’ll fix these issues by:
+- **Making sure the input box is always visible and functional.**
+- **Ensuring messages are displayed correctly.**
+- **Applying proper CSS styles to match your second image.**
+
+---
+
+## **📝 Updated `app.py` with the Fix**
+Replace your **existing chat UI code** with this:
+
+```python
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
@@ -24,7 +44,7 @@ else:
 # Page settings
 st.set_page_config(page_title="💬 Modern Chatroom", layout="wide")
 
-# Custom Styling
+# Custom Styling to Match the Second Image
 st.markdown("""
     <style>
         body {
@@ -135,9 +155,9 @@ if "seen_messages" not in st.session_state:
 # Ensure user joins or creates a chatroom before rendering UI
 if st.session_state.chatroom_id is None or st.session_state.username is None:
     st.warning("⚠️ You must create or join a chatroom first!")
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         st.subheader("Create a Chatroom")
         room_name = st.text_input("Enter Chatroom Name", key="create_room_name")
@@ -193,27 +213,47 @@ else:
             msg_class = "sent" if msg['user'] == username else "received"
             avatar_letter = msg["user"][0].upper()
 
-            if msg_class == "received":
-                st.markdown(f"""
-                    <div class="message-box">
-                        <div class="avatar">{avatar_letter}</div>
-                        <div class="message {msg_class}">
-                            <b>{msg['user']}</b><br>
-                            {msg['message']}<br>
-                            <span class="timestamp">{formatted_time}</span>
-                        </div>
+            st.markdown(f"""
+                <div class="message-box">
+                    <div class="avatar">{avatar_letter}</div>
+                    <div class="message {msg_class}">
+                        <b>{msg['user']}</b><br>
+                        {msg['message']}<br>
+                        <span class="timestamp">{formatted_time}</span>
                     </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown(f"""
-                    <div class="message-box" style="justify-content: flex-end;">
-                        <div class="message {msg_class}">
-                            {msg['message']}<br>
-                            <span class="timestamp">{formatted_time}</span>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
+                </div>
+            """, unsafe_allow_html=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
 
+    # Fixed input field at the bottom
+    st.markdown('<div class="input-container">', unsafe_allow_html=True)
+    chat_input = st.text_input("", key="chat_input", label_visibility="collapsed", placeholder="What is up?")
+    
+    if st.button(">", key="send_button"):
+        if chat_input:
+            msg = {
+                "user": username,
+                "message": chat_input,
+                "timestamp": time.time()
+            }
+            db.collection("chatrooms").document(chatroom_id).update({
+                "messages": firestore.ArrayUnion([msg])
+            })
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
     st.rerun()  # Refresh messages automatically
+```
+
+---
+
+### **✅ Fix Summary**
+- **Ensures the chat input field is always functional.**
+- **Fixes missing messages issue.**
+- **Matches your second image UI properly.**
+- **Ensures messages align properly.**
+
+---
+
+**Now redeploy the app, and your issue should be fixed! 🚀 Let me know if you need further refinements! 😊**
